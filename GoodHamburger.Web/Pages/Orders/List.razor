@@ -1,0 +1,164 @@
+@page "/orders"
+@inject IOrderApiService OrderApi
+
+<PageTitle>Pedidos | Good Hamburger</PageTitle>
+
+<div class="page-content">
+    <div class="page-header flex-between">
+        <div>
+            <h1>Pedidos</h1>
+            <p>Gerenciamento de todos os pedidos realizados</p>
+        </div>
+        <a href="/orders/new" class="btn btn-primary">
+            + Novo Pedido
+        </a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-error">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            @_error
+        </div>
+    }
+
+    @if (_loading)
+    {
+        <div class="spinner"></div>
+    }
+    else if (_response == null || _response.Data.Count == 0)
+    {
+        <div class="card empty-state">
+            <p>Nenhum pedido encontrado.</p>
+            <a href="/orders/new" class="btn btn-ghost" style="margin-top:.5rem">Criar o primeiro pedido</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nº do Pedido</th>
+                        <th>Itens</th>
+                        <th>Subtotal</th>
+                        <th>Desconto</th>
+                        <th>Total</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in _response.Data)
+                    {
+                        <tr>
+                            <td><span class="order-number">@order.OrderNumber</span></td>
+                            <td>@order.Items.Count item(s)</td>
+                            <td>R$ @order.Subtotal.ToString("F2")</td>
+                            <td class="discount-value">R$ @order.Discount.ToString("F2")</td>
+                            <td style="font-weight:600">R$ @order.Total.ToString("F2")</td>
+                            <td>
+                                <div class="flex-gap">
+                                    <button class="btn btn-sm btn-ghost" @onclick="() => ConfirmDelete(order)">Excluir</button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <button class="btn btn-ghost btn-sm" disabled="@(_page == 1)" @onclick="() => LoadPage(_page - 1)">Anterior</button>
+            <span class="text-muted" style="font-size:.875rem">Página @_page</span>
+            <button class="btn btn-ghost btn-sm" disabled="@(_response.Data.Count < 10)" @onclick="() => LoadPage(_page + 1)">Próxima</button>
+        </div>
+    }
+
+    @if (_orderToDelete != null)
+    {
+        <div class="modal-overlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title">Confirmar exclusão</h3>
+                    <button class="modal-close" @onclick="CancelDelete">✕</button>
+                </div>
+                <p>Tem certeza de que deseja excluir o pedido <strong>@_orderToDelete.OrderNumber</strong>?</p>
+                <div class="modal-footer">
+                    <button class="btn btn-ghost" @onclick="CancelDelete">Cancelar</button>
+                    <button class="btn btn-danger" @onclick="DeleteOrder" disabled="@_deleting">
+                        @(_deleting ? "Excluindo..." : "Excluir Pedido")
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool _loading = true;
+    private PagedResponse<OrderModel>? _response;
+    private string? _error;
+    private int _page = 1;
+    private OrderModel? _orderToDelete;
+    private bool _deleting;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPage(1);
+    }
+
+    private async Task LoadPage(int page)
+    {
+        _loading = true;
+        _error = null;
+        _page = page;
+        StateHasChanged();
+
+        try
+        {
+            _response = await OrderApi.GetAllAsync(page, 10);
+        }
+        catch (Exception ex)
+        {
+            _error = "Erro de conexão ao buscar pedidos.";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void ConfirmDelete(OrderModel order) => _orderToDelete = order;
+
+    private void CancelDelete() => _orderToDelete = null;
+
+    private async Task DeleteOrder()
+    {
+        if (_orderToDelete == null) return;
+
+        _deleting = true;
+        _error = null;
+        try
+        {
+            var err = await OrderApi.DeleteAsync(_orderToDelete.Id);
+            if (err != null)
+            {
+                _error = err;
+            }
+            else
+            {
+                await LoadPage(_page);
+            }
+        }
+        catch (Exception)
+        {
+            _error = "Erro de conexão ao excluir o pedido.";
+        }
+        finally
+        {
+            _deleting = false;
+            _orderToDelete = null;
+        }
+    }
+}

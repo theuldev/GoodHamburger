@@ -1,13 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace MovimentAPI.Application.ViewModels
+namespace GoodHamburger.Application.Models.ViewModels
 {
-    public record PagedResponse<T>(
-      int Page,
-      int PageSize,
-      int Total,
-      IEnumerable<T> Data
-  );
+    public class PagedResponse<T>
+    {
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int Total { get; set; }
+        public IEnumerable<T> Data { get; set; } = new List<T>();
+    }
 }

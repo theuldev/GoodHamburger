@@ -1,21 +1,32 @@
-﻿using GoodHamburger.Application.Interfaces;
+using GoodHamburger.Application.Interfaces;
 using GoodHamburger.Application.Models.ViewModels;
+using GoodHamburger.Infra.Contract;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GoodHamburger.Application.Services
 {
     public class ProductService : IProductService
     {
-        public Task<IEnumerable<ProductResponse>> GetAllAsync()
+        private readonly IProductRepository _productRepository;
+
+        public ProductService(IProductRepository productRepository)
         {
-            throw new NotImplementedException();
+            _productRepository = productRepository;
         }
 
-        public Task<ProductResponse?> GetByIdAsync(Guid id)
+        public async Task<IEnumerable<ProductResponse>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            var products = await _productRepository.GetAllAsync();
+            return products.Select(ProductResponse.FromEntity);
+        }
+
+        public async Task<ProductResponse?> GetByIdAsync(Guid id)
+        {
+            var product = await _productRepository.GetByIdAsync(id);
+            return product == null ? null : ProductResponse.FromEntity(product);
         }
     }
 }

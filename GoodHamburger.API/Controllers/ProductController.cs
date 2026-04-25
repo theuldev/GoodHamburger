@@ -1,12 +1,23 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using GoodHamburger.Application.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
-namespace GoodHamburger.API.Controllers
+namespace GoodHamburger.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductController : ControllerBase
 {
-    public class ProductController : Controller
+    private readonly IProductService _productService;
+
+    public ProductController(IProductService productService)
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
+        _productService = productService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var products = await _productService.GetAllAsync();
+        return Ok(products);
     }
 }

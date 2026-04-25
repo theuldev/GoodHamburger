@@ -1,14 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System;
 
 namespace GoodHamburger.Application.Models.ViewModels
 {
     public record ProductResponse(
         Guid Id,
         string Name,
-        string Code,
         decimal Price,
-        string Type
-    );
+        string Category
+    )
+    {
+        public static ProductResponse FromEntity(Domain.Entities.Product product)
+        {
+            return new ProductResponse(
+                product.Id,
+                product.Name,
+                product.Price,
+                product.Category.ToString()
+            );
+        }
+    }
 }

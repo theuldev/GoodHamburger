@@ -1,4 +1,4 @@
-﻿using GoodHamburger.Domain.Entities;
+using GoodHamburger.Domain.Entities;
 using GoodHamburger.Infra.Context;
 using GoodHamburger.Infra.Contract;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +32,10 @@ namespace GoodHamburger.Infra.Repositories
 
         public async Task<(IEnumerable<Order> Items, int Total)> GetAllAsync(int page, int pageSize, string? search, string? sort, string? order)
         {
-          var query = _context.Orders.AsQueryable();
+          var query = _context.Orders
+                .Include(o => o.Items)
+                    .ThenInclude(i => i.Product)
+                .AsQueryable();
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var s = search.Trim().ToLower();
@@ -59,8 +62,10 @@ namespace GoodHamburger.Infra.Repositories
 
         public Task<Order?> GetByIdAsync(Guid id)
         {
-            var order = _context.Orders.Include(o => o.Items).FirstOrDefaultAsync(o => o.Id == id);  
-            return order; 
+            return _context.Orders
+                .Include(o => o.Items)
+                    .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(o => o.Id == id);
         }
 
         public async Task SaveAsync()

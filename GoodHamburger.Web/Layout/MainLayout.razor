@@ -1,0 +1,21 @@
+@inherits LayoutComponentBase
+
+<div>
+    <nav class="topbar">
+        <a href="/" class="topbar-brand">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7h18M5 7a7 7 0 0 1 14 0M3 12h18M3 17h18M5 17a7 7 0 0 0 14 0"/>
+            </svg>
+            Good Hamburger
+        </a>
+        <div class="topbar-nav">
+            <NavLink href="/" Match="NavLinkMatch.All">Cardápio</NavLink>
+            <NavLink href="/orders">Pedidos</NavLink>
+            <NavLink href="/orders/new">Novo Pedido</NavLink>
+        </div>
+    </nav>
+
+    <main>
+        @Body
+    </main>
+</div>

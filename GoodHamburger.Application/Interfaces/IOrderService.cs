@@ -1,6 +1,5 @@
-﻿using GoodHamburger.Application.Models.InputModels;
+using GoodHamburger.Application.Models.InputModels;
 using GoodHamburger.Application.Models.ViewModels;
-using MovimentAPI.Application.ViewModels;
 
 namespace GoodHamburger.Application.Interfaces
 {

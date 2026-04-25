@@ -1,0 +1,17 @@
+<Router AppAssembly="typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Não encontrado</PageTitle>
+        <LayoutView Layout="typeof(Layout.MainLayout)">
+            <div class="page-content">
+                <div class="empty-state">
+                    <h3>Página não encontrada</h3>
+                    <p><a href="/" style="color:var(--accent)">Voltar ao início</a></p>
+                </div>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>

@@ -1,38 +1,99 @@
-﻿using GoodHamburger.Application.Interfaces;
+using GoodHamburger.Application.Interfaces;
 using GoodHamburger.Application.Models.InputModels;
 using GoodHamburger.Application.Models.ViewModels;
-using MovimentAPI.Application.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using GoodHamburger.Domain.Entities;
+using GoodHamburger.Domain.Exceptions;
+using GoodHamburger.Infra.Contract;
 
-namespace GoodHamburger.Application.Services
+namespace GoodHamburger.Application.Services;
+
+public class OrderService : IOrderService
 {
-    public class OrderService : IOrderService
+    private readonly IOrderRepository   _orderRepository;
+    private readonly IProductRepository _productRepository;
+
+    public OrderService(IOrderRepository orderRepository, IProductRepository productRepository)
     {
-        public Task<OrderResponse> CreateAsync(CreateOrderRequest request)
+        _orderRepository   = orderRepository;
+        _productRepository = productRepository;
+    }
+
+    public async Task<OrderResponse> CreateAsync(CreateOrderRequest request)
+    {
+        if (request.Items == null || !request.Items.Any())
+            throw new InvalidOrderException();
+
+        var order = Order.Create();
+
+        foreach (var item in request.Items)
         {
-            throw new NotImplementedException();
+            var product = await _productRepository.GetByIdAsync(item.ProductId);
+            if (product == null)
+                throw new ProductNotExistException(item.ProductId);
+
+            order.AddItem(product, item.Quantity);
         }
 
-        public Task DeleteAsync(Guid id)
+        await _orderRepository.AddAsync(order);
+        await _orderRepository.SaveAsync();
+
+        return OrderResponse.FromEntity(order);
+    }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        var order = await _orderRepository.GetByIdAsync(id);
+        if (order == null)
+            throw new OrderNotFoundException(id);
+
+        await _orderRepository.DeleteAsync(order);
+        await _orderRepository.SaveAsync();
+    }
+
+    public async Task<PagedResponse<OrderResponse>> GetAllAsync(
+        int page, int pageSize, string? search, string? sort, string? order)
+    {
+        var result = await _orderRepository.GetAllAsync(page, pageSize, search, sort, order);
+
+        return new PagedResponse<OrderResponse>
         {
-            throw new NotImplementedException();
+            Page     = page,
+            PageSize = pageSize,
+            Total    = result.Total,
+            Data     = result.Items.Select(OrderResponse.FromEntity).ToList()
+        };
+    }
+
+    public async Task<OrderResponse?> GetByIdAsync(Guid id)
+    {
+        var order = await _orderRepository.GetByIdAsync(id);
+        if (order == null) return null;
+        return OrderResponse.FromEntity(order);
+    }
+
+    public async Task<OrderResponse> UpdateAsync(Guid id, UpdateOrderRequest request)
+    {
+        var order = await _orderRepository.GetByIdAsync(id);
+        if (order == null)
+            throw new OrderNotFoundException(id);
+
+        if (request.Items == null || !request.Items.Any())
+            throw new InvalidOrderException();
+
+        order.ClearItems();
+
+        foreach (var item in request.Items)
+        {
+            var product = await _productRepository.GetByIdAsync(item.ProductId);
+            if (product == null)
+                throw new ProductNotExistException(item.ProductId);
+
+            order.AddItem(product, item.Quantity);
         }
 
-        public Task<PagedResponse<OrderResponse>> GetAllAsync(int page, int pageSize, string? search, string? sort, string? order)
-        {
-            throw new NotImplementedException();
-        }
+        await _orderRepository.UpdateAsync(order);
+        await _orderRepository.SaveAsync();
 
-        public Task<OrderResponse?> GetByIdAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<OrderResponse> UpdateAsync(Guid id, UpdateOrderRequest request)
-        {
-            throw new NotImplementedException();
-        }
+        return OrderResponse.FromEntity(order);
     }
 }
