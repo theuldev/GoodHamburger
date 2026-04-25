@@ -23,7 +23,7 @@ O cardápio atual consiste em:
 
 ---
 
-## 🚀 Como Executar o Projeto
+## Como Executar o Projeto
 
 O projeto foi inteiramente containerizado utilizando o **Docker Compose** para facilitar a execução, sem a necessidade de instalar SDKs e configurar o banco manualmente. A stack sobe o Banco de Dados (PostgreSQL), o pgAdmin, a API e o Frontend Web (Blazor).
 
@@ -55,7 +55,7 @@ Caso prefira rodar os projetos usando o SDK:
 
 ---
 
-## 🧪 Testes Automatizados
+##  Testes Automatizados
 
 Para garantir a integridade das regras de negócio, cálculo de descontos e exceções, o projeto possui testes automatizados (unitários e de integração) escritos com **xUnit** e **Moq**.
 
@@ -66,7 +66,7 @@ dotnet test
 
 ---
 
-## 🏗 Arquitetura e Decisões Técnicas
+## Arquitetura e Decisões Técnicas
 
 A arquitetura do backend foi baseada nos princípios do **Domain-Driven Design (DDD)** estruturada em 4 camadas principais:
 
